@@ -20,7 +20,7 @@
 use GeometryLibrary\MathUtil;
 
 class SphericalUtil {
-    
+
     /**
      * Returns the heading from one LatLng to another LatLng. Headings are
      * expressed in degrees clockwise from North within the range [-180,180).
@@ -36,11 +36,11 @@ class SphericalUtil {
         $heading = atan2(
                 sin($dLng) * cos($toLat),
                 cos($fromLat) * sin($toLat) - sin($fromLat) * cos($toLat) * cos($dLng));
-        
+
         return MathUtil::wrap(rad2deg($heading), -180, 180);
     }
-    
-    
+
+
 /**
      * Returns the LatLng resulting from moving a distance from an origin
      * in the specified heading (expressed in degrees clockwise from north).
@@ -62,12 +62,14 @@ class SphericalUtil {
         $dLng = atan2(
                 $sinDistance * $cosFromLat * sin($heading),
                 $cosDistance - $sinFromLat * $sinLat);
-        
-        return ['lat' => rad2deg(asin($sinLat)), 'lng' =>rad2deg($fromLng + $dLng)];
-    }    
-    
-    
-    
+
+        return array(
+            'lat' => rad2deg(asin($sinLat)),
+            'lng' =>rad2deg($fromLng + $dLng));
+    }
+
+
+
     /**
      * Returns the location of origin when provided with a LatLng destination,
      * meters travelled and original heading. Headings are expressed in degrees
@@ -109,11 +111,13 @@ class SphericalUtil {
         }
         $fromLngRadians = rad2deg($to['lng']) -
                 atan2($n3, $n1 * cos($fromLatRadians) - $n2 * sin($fromLatRadians));
-        return ['lat' => rad2deg($fromLatRadians), 'lng' => rad2deg($fromLngRadians)];
-    }    
-    
-    
-    
+        return array(
+            'lat' => rad2deg($fromLatRadians),
+            'lng' => rad2deg($fromLngRadians));
+    }
+
+
+
   /**
      * Returns the LatLng which lies the given fraction of the way between the
      * origin LatLng and the destination LatLng.
@@ -148,17 +152,17 @@ class SphericalUtil {
         // Converts interpolated vector back to polar.
         $lat = atan2($z, sqrt($x * $x + $y * $y));
         $lng = atan2($y, $x);
-        return [ 'lat' => rad2deg($lat), 'lng' => rad2deg($lng)];
-    }    
-    
-    
+        return array('lat' => rad2deg($lat), 'lng' => rad2deg($lng));
+    }
+
+
     /**
      * Returns distance on the unit sphere; the arguments are in radians.
      */
     private static function distanceRadians( $lat1,  $lng1,  $lat2,  $lng2) {
         return MathUtil::arcHav(MathUtil::havDistance($lat1, $lat2, $lng1 - $lng2));
     }
-    
+
     /**
      * Returns the angle between two LatLngs, in radians. This is the same as the distance
      * on the unit sphere.
@@ -166,17 +170,17 @@ class SphericalUtil {
     private static function computeAngleBetween($from, $to) {
         return self::distanceRadians(deg2rad($from['lat']), deg2rad($from['lng']),
                                deg2rad($to['lat']), deg2rad($to['lng']));
-    }    
-    
-    
+    }
+
+
     /**
      * Returns the distance between two LatLngs, in meters.
      */
     public static function computeDistanceBetween( $from, $to) {
         return self::computeAngleBetween($from, $to) * MathUtil::EARTH_RADIUS;
-    }  
-    
-    
+    }
+
+
     /**
      * Returns the length of the given path, in meters, on Earth.
      */
@@ -197,8 +201,8 @@ class SphericalUtil {
         }
         return $length * MathUtil::EARTH_RADIUS;
     }
-    
-    
+
+
     /**
      * Returns the area of a closed path on Earth.
      * @param path A closed path.
@@ -206,9 +210,9 @@ class SphericalUtil {
      */
     public static function computeArea($path) {
         return abs(self::computeSignedArea($path));
-    }    
-    
-    
+    }
+
+
     /**
      * Returns the signed area of a closed path on Earth. The sign of the area may be used to
      * determine the orientation of the path.
@@ -218,8 +222,8 @@ class SphericalUtil {
      */
     public static function computeSignedArea($path) {
         return self::computeSignedAreaP($path, MathUtil::EARTH_RADIUS);
-    }  
-    
+    }
+
 /**
      * Returns the signed area of a closed path on a sphere of given radius.
      * The computed area uses the same units as the radius squared.
@@ -242,9 +246,9 @@ class SphericalUtil {
             $prevLng = $lng;
         }
         return $total * ($radius * $radius);
-    }   
-    
-    
+    }
+
+
     /**
      * Returns the signed area of a triangle which has North Pole as a vertex.
      * Formula derived from "Area of a spherical triangle given two edges and the included angle"
@@ -256,9 +260,9 @@ class SphericalUtil {
         $deltaLng = $lng1 - $lng2;
         $t = $tan1 * $tan2;
         return 2 * atan2($t * sin($deltaLng), 1 + $t * cos($deltaLng));
-    }    
-    
-    
+    }
+
+
 }
 
 ?>

@@ -2,9 +2,9 @@
 
 /*
  * Copyright 2013 Google Inc.
- * 
+ *
  * https://github.com/googlemaps/android-maps-utils/blob/master/library/src/com/google/maps/android/PolyUtil.java
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,9 +22,9 @@ use GeometryLibrary\MathUtil;
 use GeometryLibrary\SphericalUtil;
 
 class PolyUtil {
-    
-    const DEFAULT_TOLERANCE = 0.1;  // meters.  
-    
+
+    const DEFAULT_TOLERANCE = 0.1;  // meters.
+
     private static $result = '';
 
 
@@ -34,19 +34,19 @@ class PolyUtil {
      */
     private static function tanLatGC( $lat1,  $lat2,  $lng2,  $lng3) {
         return (tan($lat1) * sin($lng2 - $lng3) + tan($lat2) * sin($lng3)) / sin($lng2);
-    }  
-    
+    }
+
     /**
      * Returns mercator(latitude-at-lng3) on the Rhumb line (lat1, lng1) to (lat2, lng2). lng1==0.
-     */        
+     */
     private static function  mercatorLatRhumb( $lat1, $lat2,  $lng2,  $lng3) {
-        
+
         return (MathUtil::mercator($lat1) * ($lng2 - $lng3) + MathUtil::mercator($lat2) * $lng3) / $lng2;
     }
-    
-  
-    
-    
+
+
+
+
  /**
      * Computes whether the vertical segment (lat3, lng3) to South Pole intersects the segment
      * (lat1, lng1) to (lat2, lng2).
@@ -86,9 +86,9 @@ class PolyUtil {
         return $geodesic ?
             tan($lat3) >= self::tanLatGC($lat1, $lat2, $lng2, $lng3) :
             MathUtil::mercator($lat3) >= self::mercatorLatRhumb($lat1, $lat2, $lng2, $lng3);
-    }  
-    
-    
+    }
+
+
 /**
      * Computes whether the given point lies inside the specified polygon.
      * The polygon is always cosidered closed, regardless of whether the last point equals
@@ -98,9 +98,9 @@ class PolyUtil {
      * (loxodromic) segments otherwise.
      */
     public static function containsLocation($point, $polygon, $geodesic = false) {
-       
+
         $size = count( $polygon );
-        
+
         if ($size == 0) {
             return false;
         }
@@ -109,20 +109,20 @@ class PolyUtil {
         $prev = $polygon[$size - 1];
         $lat1 = deg2rad( $prev['lat'] );
         $lng1 = deg2rad( $prev['lng'] );
-        
+
         $nIntersect = 0;
-        
+
         foreach($polygon as $key => $val) {
-            
+
             $dLng3 = MathUtil::wrap($lng3 - $lng1, -M_PI, M_PI);
             // Special case: point equal to vertex is inside.
             if ($lat3 == $lat1 && $dLng3 == 0) {
                 return true;
             }
-            
+
             $lat2 = deg2rad($val['lat']);
             $lng2 = deg2rad($val['lng']);
-            
+
             // Offset longitudes by -lng1.
             if (self::intersects($lat1, $lat2, MathUtil::wrap($lng2 - $lng1, -M_PI, M_PI), $lat3, $dLng3, $geodesic)) {
                 ++$nIntersect;
@@ -131,9 +131,9 @@ class PolyUtil {
             $lng1 = $lng2;
         }
         return ($nIntersect & 1) != 0;
-    }    
-    
-    
+    }
+
+
   /**
      * Computes whether the given point lies on or near the edge of a polygon, within a specified
      * tolerance in meters. The polygon edge is composed of great circle segments if geodesic
@@ -142,9 +142,9 @@ class PolyUtil {
      */
     public static function isLocationOnEdge($point, $polygon, $tolerance = self::DEFAULT_TOLERANCE, $geodesic = true) {
         return self::isLocationOnEdgeOrPath($point, $polygon, true, $geodesic, $tolerance);
-    }  
-    
-    
+    }
+
+
  /**
      * Computes whether the given point lies on or near a polyline, within a specified
      * tolerance in meters. The polyline is composed of great circle segments if geodesic
@@ -153,17 +153,17 @@ class PolyUtil {
      */
     public static function isLocationOnPath($point, $polyline, $tolerance = self::DEFAULT_TOLERANCE, $geodesic = true) {
         return self::isLocationOnEdgeOrPath($point, $polyline, false, $geodesic, $tolerance);
-    }    
-    
-    
+    }
+
+
     private static function isLocationOnEdgeOrPath($point, $poly, $closed, $geodesic, $toleranceEarth) {
-        
+
         $size = count( $poly );
-        
+
         if ($size == 0) {
             return false;
         }
-        
+
         $tolerance = $toleranceEarth / MathUtil::EARTH_RADIUS;
         $havTolerance = MathUtil::hav($tolerance);
         $lat3 = deg2rad($point['lat']);
@@ -171,7 +171,7 @@ class PolyUtil {
         $prev = !empty($closed) ? $poly[$size - 1] : 0;
         $lat1 = deg2rad($prev['lat']);
         $lng1 = deg2rad($prev['lng']);
-        
+
         if ($geodesic) {
             foreach($poly as $val) {
                 $lat2 = deg2rad($val['lat']);
@@ -192,11 +192,11 @@ class PolyUtil {
             $maxAcceptable = $lat3 + $tolerance;
             $y1 = MathUtil::mercator($lat1);
             $y3 = MathUtil::mercator($lat3);
-            $xTry = [];
+            $xTry = array();
             foreach($poly as $val) {
                 $lat2 = deg2rad($val['lat']);
                 $y2 = MathUtil::mercator($lat2);
-                $lng2 = deg2rad($val['lng']);                
+                $lng2 = deg2rad($val['lng']);
                 if (max($lat1, $lat2) >= $minAcceptable && min($lat1, $lat2) <= $maxAcceptable) {
                     // We offset longitudes by -lng1; the implicit x1 is 0.
                     $x2 = MathUtil::wrap($lng2 - $lng1, -M_PI, M_PI);
@@ -205,7 +205,7 @@ class PolyUtil {
                     // Also explore wrapping of x3Base around the world in both directions.
                     $xTry[1] = $x3Base + 2 * M_PI;
                     $xTry[2] = $x3Base - 2 * M_PI;
-                    
+
                     foreach($xTry as $x3) {
                         $dy = $y2 - $y1;
                         $len2 = $x2 * $x2 + $dy * $dy;
@@ -226,15 +226,15 @@ class PolyUtil {
         }
         return false;
     }
-    
-    
-    
+
+
+
  /**
      * Returns sin(initial bearing from (lat1,lng1) to (lat3,lng3) minus initial bearing
      * from (lat1, lng1) to (lat2,lng2)).
      */
     private static function sinDeltaBearing( $lat1, $lng1, $lat2, $lng2, $lat3, $lng3) {
-        
+
         $sinLat1 = sin($lat1);
         $cosLat2 = cos($lat2);
         $cosLat3 = cos($lat3);
@@ -248,11 +248,11 @@ class PolyUtil {
         $d = sin($lat21) + 2 * $sinLat1 * $cosLat2 * MathUtil::hav($lng21);
         $denom = ($a * $a + $b * $b) * ($c * $c + $d * $d);
         return $denom <= 0 ? 1 : ($a * $d - $b * $c) / sqrt($denom);
-    }    
-  
-    
+    }
+
+
     private static function isOnSegmentGC( $lat1, $lng1, $lat2, $lng2, $lat3, $lng3, $havTolerance) {
-        
+
         $havDist13 = MathUtil::havDistance($lat1, $lat3, $lng1 - $lng3);
         if ($havDist13 <= $havTolerance) {
             return true;
@@ -281,7 +281,7 @@ class PolyUtil {
         $sinSumAlongTrack = MathUtil::sinSumFromHav($havAlongTrack13, $havAlongTrack23);
         return $sinSumAlongTrack > 0;  // Compare with half-circle == PI using sign of sin().
     }
-    
+
      /**
      * Computes the distance on the sphere between the point p and the line segment start to end.
      *
@@ -290,7 +290,7 @@ class PolyUtil {
      * @param end the end of the line segment
      * @return the distance in meters (assuming spherical earth)
      */
-     
+
     public static function distanceToLine($p, $start, $end) {
         if ($start == $end) {
             return SphericalUtil::computeDistanceBetween($end, $p);
@@ -317,16 +317,16 @@ class PolyUtil {
         $sb = array('lat' => ($u * ($end['lat'] - $start['lat'])), 'lng' => ($u * ($end['lng'] - $start['lng'])));
         return SphericalUtil::computeDistanceBetween($sa, $sb);
     }
-    
+
     /**
      * Decodes an encoded path string into a sequence of LatLngs.
      */
     public static function decode($encodedPath) {
-        
+
         $len = strlen( $encodedPath ) -1;
         // For speed we preallocate to an upper bound on the final length, then
         // truncate the array before returning.
-        $path = [];
+        $path = array();
         $index = 0;
         $lat = 0;
         $lng = 0;
@@ -340,7 +340,7 @@ class PolyUtil {
                 $result += $b << $shift;
                 $shift += 5;
             } while ($b >= hexdec("0x1f"));
-            
+
             $lat += ($result & 1) != 0 ? ~($result >> 1) : ($result >> 1);
 
             $result = 1;
@@ -351,19 +351,20 @@ class PolyUtil {
                 $shift += 5;
             } while ($b >= hexdec("0x1f"));
             $lng += ($result & 1) != 0 ? ~($result >> 1) : ($result >> 1);
-            
-            array_push($path, ['lat' => $lat * 1e-5, 'lng' => $lng * 1e-5]);
+
+            array_push(
+                $path, array('lat' => $lat * 1e-5, 'lng' => $lng * 1e-5));
         }
 
         return $path;
-    }    
-    
-    
+    }
+
+
     /**
      * Encodes a sequence of LatLngs into an encoded path string.
      */
     public static function encode($path) {
-        
+
         $lastLat = 0;
         $lastLng = 0;
 
@@ -372,7 +373,7 @@ class PolyUtil {
         foreach( $path as $point ) {
             $lat = round( $point['lat'] * 1e5);
             $lng = round( $point['lng'] * 1e5);
-            
+
             $dLat = $lat - $lastLat;
             $dLng = $lng - $lastLng;
 
@@ -383,10 +384,10 @@ class PolyUtil {
             $lastLng = $lng;
         }
         return self::$result;
-    }    
-    
-    
-    
+    }
+
+
+
     private static function enc($v) {
 
         $v = $v < 0 ? ~($v << 1) : $v << 1;
@@ -395,11 +396,11 @@ class PolyUtil {
             self::$result.= chr((int) ((0x20 | ($v & 0x1f)) + 63));
             $v >>= 5;
         }
-        
+
         self::$result.=chr((int) ($v + 63));
-        
-    }    
-    
+
+    }
+
 }
 
 ?>
